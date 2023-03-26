@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Register from "./components/Register";
 import Login from "./components/Login";
 import PostList from "./components/PostList";
+import PostForm from "./components/PostForm";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
       <Register />
       <Login />
       <PostList />
+      <PostForm />
     </div>
   );
 }
