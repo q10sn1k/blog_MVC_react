@@ -13,3 +13,9 @@ git push -u origin main
 ```
 git checmout -b branch_name
 ```
+
+git add + commit
+
+```
+git commit -am 'update readme'
+```
