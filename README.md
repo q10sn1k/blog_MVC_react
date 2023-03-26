@@ -31,6 +31,29 @@
 │   │
 │   ├── package.json
 │   └── package-lock.json
+│
+├── server
+│   ├── config
+│   │   └── db.js
+│   │
+│   ├── controllers
+│   │   ├── userController.js
+│   │   └── postController.js
+│   │
+│   ├── models
+│   │   ├── user.js
+│   │   └── post.js
+│   │
+│   ├── routes
+│   │   ├── userRoutes.js
+│   │   └── postRoutes.js
+│   │
+│   ├── app.js
+│   ├── .env
+│   ├── package.json
+│   └── package-lock.json
+│
+└── README.md
 ```
 
 
