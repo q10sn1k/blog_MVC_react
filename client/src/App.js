@@ -1,24 +1,27 @@
-import './App.css';
 import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Register from "./components/Register";
-import Login from "./components/Login";
-import PostList from "./components/PostList";
-import PostForm from "./components/PostForm";
-import Post from "./components/Post";
+import Register from './components/Register';
+import Login from './components/Login';
+import PostList from './components/PostList';
+import PostForm from './components/PostForm';
+import Post from './components/Post';
 
-function App() {
+const App = () => {
   return (
-    <div>
+    <Router>
       <Navbar />
-      <Register />
-      <Login />
-      <PostList />
-      <PostForm />
-      <Post />
-    </div>
+      <div className="container">
+        <Routes>
+          <Route path="/" element={<PostList />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/create-post" element={<PostForm />} />
+          <Route path="/post/:postId" element={<Post />} />
+        </Routes>
+      </div>
+    </Router>
   );
-}
+};
 
 export default App;
-
