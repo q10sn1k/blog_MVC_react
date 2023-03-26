@@ -19,3 +19,10 @@ git add + commit
 ```
 git commit -am 'update readme'
 ```
+
+
+отобразить ветку
+
+```
+git branch
+```

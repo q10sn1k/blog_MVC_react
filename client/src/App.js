@@ -1,12 +1,14 @@
 import './App.css';
 import React from 'react';
 import Navbar from './components/Navbar';
+import Register from "./components/Register";
 
 function App() {
   return (
     <div>
-      <Navbar />
       {/* здесь можно добавить другие компоненты */}
+      <Navbar />
+      <Register />
     </div>
   );
 }
