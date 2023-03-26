@@ -21,4 +21,6 @@ describe('Register', () => {
     const submitButton = screen.getByRole('button', { name: 'Зарегистрироваться' });
     expect(submitButton).toBeInTheDocument();
   });
+
+
 });
