@@ -18,8 +18,36 @@ const Register = () => {
     }
 
     //....
-    // Здесь отправляются данные на сервер для регистрации.
-    // Если регистрация успешна, перенаправляем пользователя на страницу входа или главную страницу.
+   try {
+      const response = await fetch('http://localhost:5000/api/users/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Успешная регистрация! Пожалуйста, войдите.');
+        setUsername('');
+        setEmail('');
+        setPassword('');
+        setPasswordConfirmation('');
+        history.push('/login');
+      } else {
+        alert(`Ошибка регистрации: ${data.message}`);
+      }
+    } catch (error) {
+      console.error('Ошибка при регистрации:', error);
+      alert('Ошибка регистрации. Пожалуйста, попробуйте еще раз.');
+    }
+
     //....
 
     setUsername('');
