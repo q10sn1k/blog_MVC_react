@@ -1,0 +1,35 @@
+.post-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.post-list__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.post-list__title {
+  margin: 0 0 0.5rem;
+}
+
+.post-list__content {
+  margin: 0 0 1rem;
+}
+
+.post-list__read-more {
+  text-decoration: none;
+  color: #007bff;
+}
+
+.post-list__read-more:hover {
+  text-decoration: underline;
+}
