@@ -1,21 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const postController = require('../controllers/postController');
-const authMiddleware = require('../middlewares/authMiddleware');
 
 // Получение списка всех постов
-router.get('/', postController.getPosts);
+router.get('/', postController.getAllPosts);
 
 // Получение поста по ID
-router.get('/:postId', postController.getPostById);
+router.get('/:id', postController.getPostById);
 
 // Создание нового поста
-router.post('/', authMiddleware, postController.createPost);
+router.post('/', postController.createPost);
 
 // Обновление поста
-router.put('/:postId', authMiddleware, postController.updatePost);
+router.put('/:id', postController.updatePost);
 
 // Удаление поста
-router.delete('/:postId', authMiddleware, postController.deletePost);
+router.delete('/:id', postController.deletePost);
 
 module.exports = router;
