@@ -201,6 +201,7 @@ SELECT * FROM posts;
 
 добавим тест `post.test.js` в `package.json`
 
+
 ```json
 {
   
@@ -219,4 +220,36 @@ SELECT * FROM posts;
 ```
 npm run test-model-post
 ```
+______________________
 
+Создадим тест модели user
+
+добавим тест `user.test.js` в `package.json`
+
+
+```json
+{
+  
+ "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test-db": "mocha config/db.test.js",
+    "test-model-post": "mocha models/post.test.js",
+    "test-model-user": "mocha models/user.test.js"
+  }
+  
+}
+```
+
+запустим тест
+
+```
+npm run test-model-user
+```
+
+
+______________________
+
+# 3
+Создаем контроллеры в папке controllers.\
+Файлы userController.js и postController.js для обработки запросов связанных с пользователями и постами.

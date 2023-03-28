@@ -1,26 +1,26 @@
-const db = require('../config/db');
+const Post = require('../models/post');
 
 // Получение списка всех постов
-exports.getPosts = (req, res) => {
-  db.query('SELECT * FROM posts', (err, results) => {
+exports.getAllPosts = (req, res) => {
+  Post.getAllPosts((err, posts) => {
     if (err) {
-      console.error('Ошибка при получении постов:', err);
-      res.status(500).send('Ошибка сервера');
+      res.status(500).json({ error: 'Ошибка получения списка постов' });
     } else {
-      res.status(200).json(results);
+      res.json(posts);
     }
   });
 };
 
 // Получение поста по ID
 exports.getPostById = (req, res) => {
-  const postId = req.params.postId;
-  db.query('SELECT * FROM posts WHERE id = ?', [postId], (err, results) => {
+  const postId = req.params.id;
+  Post.getPostById(postId, (err, post) => {
     if (err) {
-      console.error('Ошибка при получении поста:', err);
-      res.status(500).send('Ошибка сервера');
+      res.status(500).json({ error: 'Ошибка получения поста' });
+    } else if (!post) {
+      res.status(404).json({ error: 'Пост не найден' });
     } else {
-      res.status(200).json(results[0]);
+      res.json(post);
     }
   });
 };
@@ -28,39 +28,40 @@ exports.getPostById = (req, res) => {
 // Создание нового поста
 exports.createPost = (req, res) => {
   const { title, content } = req.body;
-  db.query('INSERT INTO posts (title, content) VALUES (?, ?)', [title, content], (err, results) => {
+  Post.createPost(title, content, (err, postId) => {
     if (err) {
-      console.error('Ошибкшибка при создании поста:', err);
-      res.status(500).send('Ошибка сервера');
+      res.status(500).json({ error: 'Ошибка создания поста' });
     } else {
-      res.status(201).json({ message: 'Пост успешно создан', insertId: results.insertId });
+      res.status(201).json({ message: 'Пост успешно создан', postId });
     }
   });
 };
 
 // Обновление поста
 exports.updatePost = (req, res) => {
-  const postId = req.params.postId;
+  const postId = req.params.id;
   const { title, content } = req.body;
-  db.query('UPDATE posts SET title = ?, content = ? WHERE id = ?', [title, content, postId], (err, results) => {
+  Post.updatePost(postId, title, content, (err, affectedRows) => {
     if (err) {
-      console.error('Ошибка при обновлении поста:', err);
-      res.status(500).send('Ошибка сервера');
+      res.status(500).json({ error: 'Ошибка обновления поста' });
+    } else if (affectedRows === 0) {
+      res.status(404).json({ error: 'Пост не найден' });
     } else {
-      res.status(200).json({ message: 'Пост успешно обновлен', affectedRows: results.affectedRows });
+      res.json({ message: 'Пост успешно обновлен' });
     }
   });
 };
 
 // Удаление поста
 exports.deletePost = (req, res) => {
-  const postId = req.params.postId;
-  db.query('DELETE FROM posts WHERE id = ?', [postId], (err, results) => {
+  const postId = req.params.id;
+  Post.deletePost(postId, (err, affectedRows) => {
     if (err) {
-      console.error('Ошибка при удалении поста:', err);
-      res.status(500).send('Ошибка сервера');
+      res.status(500).json({ error: 'Ошибка удаления поста' });
+    } else if (affectedRows === 0) {
+      res.status(404).json({ error: 'Пост не найден' });
     } else {
-      res.status(200).json({ message: 'Пост успешно удален', affectedRows: results.affectedRows });
+      res.json({ message: 'Пост успешно удален' });
     }
   });
 };
