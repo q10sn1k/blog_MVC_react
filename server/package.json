@@ -5,7 +5,9 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "test-db": "mocha config/db.test.js",
+    "test-model-post": "mocha models/post.test.js"
   },
   "author": "Your Name",
   "license": "MIT",
@@ -19,6 +21,7 @@
   },
   "devDependencies": {
     "bcrypt": "^5.1.0",
+    "mocha": "^10.2.0",
     "nodemon": "^2.0.15"
   }
 }

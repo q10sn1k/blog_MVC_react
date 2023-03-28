@@ -1,4 +1,4 @@
-const db = require('../db');
+const db = require('../config/db');
 
 // Создание пользователя
 exports.createUser = (username, email, password, callback) => {
