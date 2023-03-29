@@ -39,12 +39,13 @@ const Register = () => {
         setEmail('');
         setPassword('');
         setPasswordConfirmation('');
-        history.push('/login');
+        window.location('/login');
+        // navigate('/login');
       } else {
         alert(`Ошибка регистрации: ${data.message}`);
       }
     } catch (error) {
-      console.error('Ошибка при регистрации:', error);
+      console.error('Ошибка при регистрации: ', error);
       alert('Ошибка регистрации. Пожалуйста, попробуйте еще раз.');
     }
 
