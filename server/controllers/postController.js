@@ -1,67 +1,65 @@
-const Post = require('../models/post');
+const postModel = require('../models/post');
 
 // Получение списка всех постов
-exports.getAllPosts = (req, res) => {
-  Post.getAllPosts((err, posts) => {
-    if (err) {
-      res.status(500).json({ error: 'Ошибка получения списка постов' });
-    } else {
-      res.json(posts);
-    }
-  });
+exports.getAllPosts = async (req, res, next) => {
+  try {
+    const posts = await postModel.getAllPosts();
+    res.status(200).json(posts);
+  } catch (err) {
+    next(err);
+  }
 };
 
 // Получение поста по ID
-exports.getPostById = (req, res) => {
+exports.getPostById = async (req, res, next) => {
   const postId = req.params.id;
-  Post.getPostById(postId, (err, post) => {
-    if (err) {
-      res.status(500).json({ error: 'Ошибка получения поста' });
-    } else if (!post) {
-      res.status(404).json({ error: 'Пост не найден' });
-    } else {
-      res.json(post);
+  try {
+    const post = await postModel.getPostById(postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
     }
-  });
+    res.status(200).json(post);
+  } catch (err) {
+    next(err);
+  }
 };
 
 // Создание нового поста
-exports.createPost = (req, res) => {
+exports.createPost = async (req, res, next) => {
   const { title, content } = req.body;
-  Post.createPost(title, content, (err, postId) => {
-    if (err) {
-      res.status(500).json({ error: 'Ошибка создания поста' });
-    } else {
-      res.status(201).json({ message: 'Пост успешно создан', postId });
-    }
-  });
+  try {
+    const postId = await postModel.createPost(title, content);
+    res.status(201).json({ message: 'Post created', postId });
+  } catch (err) {
+    next(err);
+  }
 };
 
 // Обновление поста
-exports.updatePost = (req, res) => {
+exports.updatePost = async (req, res, next) => {
   const postId = req.params.id;
   const { title, content } = req.body;
-  Post.updatePost(postId, title, content, (err, affectedRows) => {
-    if (err) {
-      res.status(500).json({ error: 'Ошибка обновления поста' });
-    } else if (affectedRows === 0) {
-      res.status(404).json({ error: 'Пост не найден' });
-    } else {
-      res.json({ message: 'Пост успешно обновлен' });
+  try {
+    const affectedRows = await postModel.updatePost(postId, title, content);
+    if (affectedRows === 0) {
+      return res.status(404).json({ message: 'Post not found' });
     }
-  });
+    res.status(200).json({ message: 'Post updated', affectedRows });
+  } catch (err) {
+    next(err);
+  }
 };
 
 // Удаление поста
-exports.deletePost = (req, res) => {
+exports.deletePost = async (req, res, next) => {
   const postId = req.params.id;
-  Post.deletePost(postId, (err, affectedRows) => {
-    if (err) {
-      res.status(500).json({ error: 'Ошибка удаления поста' });
-    } else if (affectedRows === 0) {
-      res.status(404).json({ error: 'Пост не найден' });
-    } else {
-      res.json({ message: 'Пост успешно удален' });
+  try {
+    const affectedRows = await postModel.deletePost(postId);
+    if (affectedRows === 0) {
+      return res.status(404).json({ message: 'Post not found' });
     }
-  });
+    res.status(200).json({ message: 'Post deleted', affectedRows });
+  } catch (err) {
+    next(err);
+  }
 };

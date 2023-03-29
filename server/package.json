@@ -8,13 +8,15 @@
     "dev": "nodemon app.js",
     "test-db": "mocha config/db.test.js",
     "test-model-post": "mocha models/post.test.js",
-    "test-model-user": "mocha models/user.test.js",
-    "test-post-router": "mocha routes/postRoutes.test.js"
+    "test-post-router": "mocha routes/postRoutes.test.js",
+    "test-post-controller": "mocha controllers/postController.test.js",
+    "test-app": "mocha app.test.js"
   },
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
     "chai-http": "^4.3.0",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
@@ -27,6 +29,7 @@
     "chai": "^4.3.7",
     "mocha": "^10.2.0",
     "nodemon": "^2.0.15",
+    "sinon": "^15.0.3",
     "supertest": "^6.3.3"
   }
 }

@@ -1,130 +1,196 @@
 const chai = require('chai');
-const chaiHttp = require('chai-http');
-const db = require('../config/db');
-const app = require('../app');
-const assert = require('assert');
+const sinon = require('sinon');
+const postController = require('../controllers/postController');
+const postModel = require('../models/post');
 
-const expect = chai.expect;
-
-chai.use(chaiHttp);
+const { expect } = chai;
 
 describe('Post Controller', () => {
-
-  // Перед запуском каждого теста создаем таблицу в базе данных
-  // beforeEach((done) => {
-  //   db.query(`CREATE TABLE posts (
-  //       id INT PRIMARY KEY AUTO_INCREMENT,
-  //       title VARCHAR(255),
-  //       content TEXT
-  //   )`, (err, results) => {
-  //     if (err) {
-  //       console.error('Ошибка при создании таблицы:', err);
-  //     }
-  //     done();
-  //   });
-  // });
-
-  // После запуска каждого теста удаляем таблицу из базы данных
-  afterEach((done) => {
-    db.query('DROP TABLE posts', (err, results) => {
-      if (err) {
-        console.error('Ошибка при удалении таблицы:', err);
-      }
-      done();
-    });
+  afterEach(() => {
+    sinon.restore();
   });
 
-  // Тест для получения списка всех постов
-  it('should return all posts', (done) => {
-    chai.request(app)
-      .get('/posts')
-      .end((err, res) => {
-        expect(res).to.have.status(200);
-        expect(res.body).to.be.an('array');
-        expect(res.body.length).to.be.equal(0);
-        done();
-      });
+  it('should get all posts', async () => {
+    const posts = [
+      { id: 1, title: 'Post 1', content: 'Content 1' },
+      { id: 2, title: 'Post 2', content: 'Content 2' },
+    ];
+
+    const req = {};
+    const res = {
+      status: sinon.stub().returnsThis(),
+      json: sinon.stub(),
+    };
+    const next = sinon.stub();
+
+    sinon.stub(postModel, 'getAllPosts').resolves(posts);
+
+    await postController.getAllPosts(req, res, next);
+
+    expect(res.status.calledOnceWith(200)).to.be.true;
+    expect(res.json.calledOnceWith(posts)).to.be.true;
+    expect(next.notCalled).to.be.true;
   });
 
-  // Тест для создания нового поста
-  it('should create a new post', (done) => {
-    chai.request(app)
-      .post('/posts')
-      .send({ title: 'Test Post', content: 'This is a test post' })
-      .end((err, res) => {
-        expect(res).to.have.status(201);
-        expect(res.body).to.be.an('object');
-        expect(res.body.message).to.be.equal('Пост успешно создан');
-        expect(res.body.insertId).to.be.a('number');
-        done();
-      });
-  });
+  it('should get a post by id', async () => {
+  const post = { id: 1, title: 'Post 1', content: 'Content 1' };
 
-  // Тест для получения поста по ID
-  it('should return a post by id', (done) => {
-    const post = { title: 'Test Post', content: 'This is a test post' };
-    db.query('INSERT INTO posts (title, content) VALUES (?, ?)', [post.title, post.content], (err, results) => {
-      if (err) {
-        console.error('Ошибка при создании поста:', err);
-      }
-      const postId = results.insertId;
-      chai.request(app)
-        .get(`/posts/${postId}`)
-        .end((err, res) => {
-          expect(res).to.have.status(200);
-          expect(res.body).to.be.an('object');
-          expect(res.body.title).to.be.equal(post.title);
-          expect(res.body.content).to.be.equal(post.content);
-          done();
-        });
-    });
-  });
+  const req = {
+    params: {
+      id: post.id,
+    },
+  };
+  const res = {
+    status: sinon.stub().returnsThis(),
+    json: sinon.stub(),
+  };
+  const next = sinon.stub();
 
-  // Тест для обновления поста по ID
-it('должен обновить пост по ID', (done) => {
-const post = { title: 'Test Post', content: 'This is a test post' };
-db.query('INSERT INTO posts (title, content) VALUES (?, ?)', [post.title, post.content], (err, results) => {
-if (err) {
-console.error('Ошибка при создании поста:', err);
-}
-const postId = results.insertId;
-const updatedPost = { title: 'Updated Test Post', content: 'This is an updated test post' };
-chai.request(app)
-.put(/posts/${postId})
-.send(updatedPost)
-.end((err, res) => {
-if (err) {
-console.error('Ошибка при обновлении поста:', err);
-}
-expect(res).to.have.status(200);
-expect(res.body.message).to.be.equal('Пост успешно обновлен');
-expect(res.body.affectedRows).to.be.equal(1);
-done();
-});
-});
+  sinon.stub(postModel, 'getPostById').resolves(post);
+
+  await postController.getPostById(req, res, next);
+
+  expect(res.status.calledOnceWith(200)).to.be.true;
+  expect(res.json.calledOnceWith(post)).to.be.true;
+  expect(next.notCalled).to.be.true;
 });
 
-// Тест для удаления поста по ID
-it('должен удалить пост по ID', (done) => {
-const post = { title: 'Test Post', content: 'This is a test post' };
-db.query('INSERT INTO posts (title, content) VALUES (?, ?)', [post.title, post.content], (err, results) => {
-if (err) {
-console.error('Ошибка при создании поста:', err);
-}
-const postId = results.insertId;
-chai.request(app)
-.delete(/posts/${postId})
-.end((err, res) => {
-if (err) {
-console.error('Ошибка при удалении поста:', err);
-}
-expect(res).to.have.status(200);
-expect(res.body.message).to.be.equal('Пост успешно удален');
-expect(res.body.affectedRows).to.be.equal(1);
-done();
-});
-});
-});
+it('should return 404 when post not found by id', async () => {
+  const req = {
+    params: {
+      id: 1,
+    },
+  };
+  const res = {
+    status: sinon.stub().returnsThis(),
+    json: sinon.stub(),
+  };
+  const next = sinon.stub();
+
+  sinon.stub(postModel, 'getPostById').resolves(null);
+
+  await postController.getPostById(req, res, next);
+
+  expect(res.status.calledOnceWith(404)).to.be.true;
+  expect(res.json.calledOnceWith({ message: 'Post not found' })).to.be.true;
+  expect(next.notCalled).to.be.true;
 });
 
-module.exports = app;
+it('should create a new post', async () => {
+  const post = { title: 'New Post', content: 'New Content' };
+  const postId = 1;
+
+  const req = {
+    body: post,
+  };
+  const res = {
+    status: sinon.stub().returnsThis(),
+    json: sinon.stub(),
+  };
+  const next = sinon.stub();
+
+  sinon.stub(postModel, 'createPost').resolves(postId);
+
+  await postController.createPost(req, res, next);
+
+  expect(res.status.calledOnceWith(201)).to.be.true;
+  expect(res.json.calledOnceWith({ message: 'Post created', postId })).to.be.true;
+  expect(next.notCalled).to.be.true;
+});
+
+it('should update a post', async () => {
+  const postId = 1;
+  const updatedPost = { title: 'Updated Post', content: 'Updated Content' };
+
+  const req = {
+    params: {
+      id: postId,
+    },
+    body: updatedPost,
+  };
+  const res = {
+    status: sinon.stub().returnsThis(),
+    json: sinon.stub(),
+  };
+  const next = sinon.stub();
+
+  sinon.stub(postModel, 'updatePost').resolves(1);
+
+  await postController.updatePost(req, res, next);
+
+  expect(res.status.calledOnceWith(200)).to.be.true;
+  expect(res.json.calledOnceWith({ message: 'Post updated', affectedRows: 1 })).to.be.true;
+  expect(next.notCalled).to.be.true;
+});
+
+  it('should return 404 when updating a non-existent post', async () => {
+  const postId = 1;
+  const updatedPost = { title: 'Updated Post', content: 'Updated Content' };
+
+  const req = {
+    params: {
+      id: postId,
+    },
+    body: updatedPost,
+  };
+  const res = {
+    status: sinon.stub().returnsThis(),
+    json: sinon.stub(),
+  };
+  const next = sinon.stub();
+
+  sinon.stub(postModel, 'updatePost').resolves(0);
+
+  await postController.updatePost(req, res, next);
+
+  expect(res.status.calledOnceWith(404)).to.be.true;
+  expect(res.json.calledOnceWith({ message: 'Post not found' })).to.be.true;
+  expect(next.notCalled).to.be.true;
+});
+
+it('should delete a post', async () => {
+  const postId = 1;
+
+  const req = {
+    params: {
+      id: postId,
+    },
+  };
+  const res = {
+    status: sinon.stub().returnsThis(),
+    json: sinon.stub(),
+  };
+  const next = sinon.stub();
+
+  sinon.stub(postModel, 'deletePost').resolves(1);
+
+  await postController.deletePost(req, res, next);
+
+  expect(res.status.calledOnceWith(200)).to.be.true;
+  expect(res.json.calledOnceWith({ message: 'Post deleted', affectedRows: 1 })).to.be.true;
+  expect(next.notCalled).to.be.true;
+});
+
+it('should return 404 when deleting a non-existent post', async () => {
+  const postId = 1;
+
+  const req = {
+    params: {
+      id: postId,
+    },
+  };
+  const res = {
+    status: sinon.stub().returnsThis(),
+    json: sinon.stub(),
+  };
+  const next = sinon.stub();
+
+  sinon.stub(postModel, 'deletePost').resolves(0);
+
+  await postController.deletePost(req, res, next);
+
+  expect(res.status.calledOnceWith(404)).to.be.true;
+  expect(res.json.calledOnceWith({ message: 'Post not found' })).to.be.true;
+  expect(next.notCalled).to.be.true;
+});
+});

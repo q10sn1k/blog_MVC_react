@@ -1,27 +1,19 @@
-const chai = require('chai');
-const chaiHttp = require('chai-http');
-const { app } = require('./app');
-
-chai.use(chaiHttp);
-const expect = chai.expect;
+const expect = require('chai').expect;
+const request = require('supertest');
+const app = require('./app');
 
 describe('App', () => {
-  let server;
+  it('should return 404 for non-existent route', async () => {
+  const response = await request(app).get('/non-existent-route');
+  expect(response.status).to.equal(404);
+  expect(response.text).to.equal('{"message":"Not Found"}');
+});
 
-  before((done) => {
-    server = app.listen(3000, done);
-  });
 
-  after((done) => {
-    server.close(done);
-  });
 
-  it('should return a 404 error for undefined routes', (done) => {
-    chai.request(app)
-      .get('/undefined-route')
-      .end((err, res) => {
-        expect(res).to.have.status(404);
-        done();
-      });
+  it('should handle errors correctly', async () => {
+    const response = await request(app).get('/test-error');
+    expect(response.status).to.equal(500);
+    expect(response.body.message).to.equal('An error occurred on the server');
   });
 });
