@@ -1,15 +1,18 @@
 const express = require('express');
-const router = express.Router();
 const userController = require('../controllers/userController');
-const authMiddleware = require('../middlewares/authMiddleware');
+
+const router = express.Router();
 
 // Регистрация нового пользователя
-router.post('/register', userController.register);
+router.post('/register', userController.createUser);
 
-// Авторизация пользователя
-router.post('/login', userController.login);
+// Получение пользователя по ID
+router.get('/:id', userController.getUserById);
 
-// Получение данных текущего пользователя
-router.get('/me', authMiddleware, userController.getCurrentUser);
+// Получение пользователя по email
+router.get('/email/:email', userController.getUserByEmail);
+
+// Аутентификация пользователя
+router.post('/login', userController.authenticateUser);
 
 module.exports = router;

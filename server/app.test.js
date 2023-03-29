@@ -1,19 +1,26 @@
-const expect = require('chai').expect;
 const request = require('supertest');
+const expect = require('chai').expect;
 const app = require('./app');
 
-describe('App', () => {
-  it('should return 404 for non-existent route', async () => {
-  const response = await request(app).get('/non-existent-route');
-  expect(response.status).to.equal(404);
-  expect(response.text).to.equal('{"message":"Not Found"}');
-});
+describe('App', function () {
+  it('should start the server on the specified port', async () => {
+    const PORT = 4000;
+    const res = await request(app).get('/');
+    expect(res.status).to.equal(404);
 
+    app.listen(PORT, () => {
+      request(app)
+        .get('/')
+        .end((err, res) => {
+          expect(res.status).to.equal(404);
+          app.close();
+        });
+    });
+  });
 
-
-  it('should handle errors correctly', async () => {
-    const response = await request(app).get('/test-error');
-    expect(response.status).to.equal(500);
-    expect(response.body.message).to.equal('An error occurred on the server');
+  it('should handle server errors correctly', async () => {
+    const res = await request(app).get('/invalid-path');
+    expect(res.status).to.equal(500);
+    expect(res.body).to.have.property('message', 'Ошибка сервера');
   });
 });

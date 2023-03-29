@@ -1,54 +1,76 @@
+const userModel = require('../models/user');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const db = require('../config/db');
 
 // Создание нового пользователя
-exports.createUser = async (req, res) => {
+exports.createUser = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
-    const hash = await bcrypt.hash(password, 10);
-    const newUser = {
-      username,
-      email,
-      password: hash,
-    };
-    db.query('INSERT INTO users SET ?', newUser, (err, results) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ message: 'Ошибка сервера' });
-      }
-      const userId = results.insertId;
-      const token = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '1d' });
-      res.status(201).json({ message: 'Пользователь успешно создан', token });
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Ошибка сервера' });
+    const userId = await userModel.createUser(username, email, password);
+    res.status(201).json({ message: 'Пользователь успешно создан', userId });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Получение пользователя по ID
+exports.getUserById = async (req, res, next) => {
+  const userId = req.params.id;
+  try {
+    const user = await userModel.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Получение пользователя по email
+exports.getUserByEmail = async (req, res, next) => {
+  const email = req.params.email;
+  try {
+    const user = await userModel.getUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    next(err);
   }
 };
 
 // Аутентификация пользователя
-exports.authenticateUser = async (req, res) => {
+// exports.authenticateUser = async (req, res, next) => {
+//   try {
+//     const { email, password } = req.body;
+//     const user = await userModel.authenticateUser(email, password);
+//     if (!user) {
+//       return res.status(401).json({ message: 'Неверный email или пароль' });
+//     }
+//     res.status(200).json({ message: 'Аутентификация прошла успешно', userId: user.id });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
+exports.authenticateUser = async (email, password) => {
   try {
-    const { email, password } = req.body;
-    db.query('SELECT * FROM users WHERE email = ?', email, async (err, results) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ message: 'Ошибка сервера' });
-      }
-      if (results.length === 0) {
-        return res.status(401).json({ message: 'Неверный email или пароль' });
-      }
-      const user = results[0];
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(401).json({ message: 'Неверный email или пароль' });
-      }
-      const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-      res.status(200).json({ message: 'Аутентификация прошла успешно', token });
-    });
+    const user = await exports.getUserByEmail(email);
+
+    if (!user) {
+      return null;
+    }
+
+    const passwordMatches = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatches) {
+      return null;
+    }
+
+    return user;
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Ошибка сервера' });
+    throw error;
   }
 };
+

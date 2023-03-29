@@ -8,8 +8,11 @@
     "dev": "nodemon app.js",
     "test-db": "mocha config/db.test.js",
     "test-model-post": "mocha models/post.test.js",
+    "test-model-user": "mocha models/user.test.js",
     "test-post-router": "mocha routes/postRoutes.test.js",
+    "test-user-router": "mocha routes/userRoutes.test.js",
     "test-post-controller": "mocha controllers/postController.test.js",
+    "test-user-controller": "mocha controllers/userController.test.js",
     "test-app": "mocha app.test.js"
   },
   "author": "Your Name",
@@ -28,6 +31,7 @@
     "bcrypt": "^5.1.0",
     "chai": "^4.3.7",
     "mocha": "^10.2.0",
+    "node-mocks-http": "^1.12.2",
     "nodemon": "^2.0.15",
     "sinon": "^15.0.3",
     "supertest": "^6.3.3"
