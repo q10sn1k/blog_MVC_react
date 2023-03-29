@@ -21,11 +21,24 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Ошибка сервера' });
 });
 
-
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
-});
+let server;
 
-module.exports = app;
+function startServer() {
+  server = app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
+
+function stopServer() {
+  server.close(() => {
+    console.log('Server is stopped');
+  });
+}
+
+module.exports = {
+  app,
+  startServer,
+  stopServer
+};
