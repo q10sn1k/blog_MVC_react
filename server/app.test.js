@@ -12,6 +12,13 @@ describe('Server Tests', () => {
     done();
   });
 
+  it('should respond with status 200 on GET /api/posts', (done) => {
+    request(app)
+      .get('/api/posts')
+      .expect(200, done);
+  });
+
+
   it('should respond with status 200 on GET /api/users', (done) => {
     request(app)
       .get('/api/users')

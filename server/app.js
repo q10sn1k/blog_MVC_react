@@ -21,7 +21,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Ошибка сервера' });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 let server;
 
@@ -42,3 +42,5 @@ module.exports = {
   startServer,
   stopServer
 };
+
+startServer();

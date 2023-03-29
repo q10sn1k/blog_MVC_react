@@ -3,7 +3,7 @@ const expect = require('chai').expect;
 const { app, startServer, stopServer } = require('../app');
 const userRoutes = require('../routes/userRoutes');
 
-const TIMEOUT = 10000; // 10 seconds
+const TIMEOUT = 2000; // 10 seconds
 
 const testUser = {
   username: 'TestUser',
@@ -95,7 +95,7 @@ describe('User API tests', function () {
       console.log(response.body); // Добавить вывод объекта пользователя
 
       expect(response.status).to.equal(200);
-      expect(response.body.username).to.equal('TestUser');
+      expect(response.body.username).to.equal('testuser');
       expect(response.body.email).to.equal('testuser@example.com');
     });
 

@@ -2,16 +2,23 @@ const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 
 // Создание пользователя
-exports.createUser = (username, email, password) => {
+exports.createUser = async (username, email, password) => {
+  const hashedPassword = await bcrypt.hash(password, 10);
+
   return new Promise((resolve, reject) => {
-    db.query('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, password], (err, results) => {
-      if (err) {
-        return reject(err);
+    db.query(
+      'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
+      [username, email, hashedPassword],
+      (err, results) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(results.insertId);
       }
-      resolve(results.insertId);
-    });
+    );
   });
 };
+
 
 // Получение пользователя по ID
 exports.getUserById = (userId) => {
@@ -20,7 +27,11 @@ exports.getUserById = (userId) => {
       if (err) {
         return reject(err);
       }
-      resolve(results[0]);
+      const user = results[0];
+      if (user) {
+        delete user.password;
+      }
+      resolve(user);
     });
   });
 };
@@ -32,10 +43,16 @@ exports.getUserByEmail = (email) => {
       if (err) {
         return reject(err);
       }
-      resolve(results[0]);
+      const user = results[0];
+      if (user) {
+        delete user.password;
+      }
+      resolve(user);
     });
   });
 };
+
+
 
 // Аутентификация пользователя
 exports.authenticateUser = (email, password) => {

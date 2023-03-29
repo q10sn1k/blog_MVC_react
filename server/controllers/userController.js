@@ -41,36 +41,36 @@ exports.getUserByEmail = async (req, res, next) => {
 };
 
 // Аутентификация пользователя
-// exports.authenticateUser = async (req, res, next) => {
-//   try {
-//     const { email, password } = req.body;
-//     const user = await userModel.authenticateUser(email, password);
-//     if (!user) {
-//       return res.status(401).json({ message: 'Неверный email или пароль' });
-//     }
-//     res.status(200).json({ message: 'Аутентификация прошла успешно', userId: user.id });
-//   } catch (err) {
-//     next(err);
-//   }
-// };
-
-exports.authenticateUser = async (email, password) => {
+exports.authenticateUser = async (req, res, next) => {
   try {
-    const user = await exports.getUserByEmail(email);
-
+    const { email, password } = req.body;
+    const user = await userModel.authenticateUser(email, password);
     if (!user) {
-      return null;
+      return res.status(401).json({ message: 'Неверный email или пароль' });
     }
-
-    const passwordMatches = await bcrypt.compare(password, user.password);
-
-    if (!passwordMatches) {
-      return null;
-    }
-
-    return user;
-  } catch (error) {
-    throw error;
+    res.status(200).json({ message: 'Аутентификация прошла успешно', userId: user.id });
+  } catch (err) {
+    next(err);
   }
 };
+
+// exports.authenticateUser = async (email, password) => {
+//   try {
+//     const user = await exports.getUserByEmail(email);
+//
+//     if (!user) {
+//       return null;
+//     }
+//
+//     const passwordMatches = await bcrypt.compare(password, user.password);
+//
+//     if (!passwordMatches) {
+//       return null;
+//     }
+//
+//     return user;
+//   } catch (error) {
+//     throw error;
+//   }
+// };
 
