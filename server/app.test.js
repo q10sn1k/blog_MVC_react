@@ -1,26 +1,33 @@
 const request = require('supertest');
-const expect = require('chai').expect;
-const app = require('./app');
+const { app, startServer, stopServer } = require('./app');
 
-describe('App', function () {
-  it('should start the server on the specified port', async () => {
-    const PORT = 4000;
-    const res = await request(app).get('/');
-    expect(res.status).to.equal(404);
-
-    app.listen(PORT, () => {
-      request(app)
-        .get('/')
-        .end((err, res) => {
-          expect(res.status).to.equal(404);
-          app.close();
-        });
-    });
+describe('Server Tests', () => {
+  before((done) => {
+    startServer();
+    done();
   });
 
-  it('should handle server errors correctly', async () => {
-    const res = await request(app).get('/invalid-path');
-    expect(res.status).to.equal(500);
-    expect(res.body).to.have.property('message', 'Ошибка сервера');
+  after((done) => {
+    stopServer();
+    done();
+  });
+
+  it('should respond with status 200 on GET /api/users', (done) => {
+    request(app)
+      .get('/api/users')
+      .expect(200, done);
+  });
+
+  it('should respond with status 404 on GET /api/nonexistent', (done) => {
+    request(app)
+      .get('/api/nonexistent')
+      .expect(404, done);
+  });
+
+  it('should respond with status 500 on POST /api/users with invalid data', (done) => {
+    request(app)
+      .post('/api/users')
+      .send({ name: '', email: 'invalid_email' })
+      .expect(500, done);
   });
 });

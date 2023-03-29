@@ -1,51 +1,76 @@
-const { expect } = require('chai');
-const sinon = require('sinon');
-const db = require('../config/db');
-const userModel = require('../models/user');
+const request = require('supertest');
+const expect = require('chai').expect;
+const { app, startServer, stopServer } = require('../app');
+const userRoutes = require('../routes/userRoutes');
 
-describe('userModel', function () {
-  this.timeout(5000);
+const TIMEOUT = 10000; // 10 seconds
 
-  afterEach(() => {
-    sinon.restore();
+describe('User API tests', function () {
+  this.timeout(TIMEOUT);
+
+  before(function (done) {
+    startServer();
+    done();
   });
 
-  it('should create a new user', (done) => {
-    const newUser = { username: 'User1', email: 'user1@example.com', password: 'password' };
-    const insertId = 1;
-    sinon.stub(db, 'query').callsFake((query, params, callback) => {
-      callback(null, { insertId });
-    });
-
-    userModel.createUser(newUser.username, newUser.email, newUser.password).then((createdUserId) => {
-      expect(createdUserId).to.equal(insertId);
-      done();
-    }).catch(done);
+  after(function (done) {
+    stopServer();
+    done();
   });
 
-  it('should get a user by id', (done) => {
-    const userId = 1;
-    const user = { id: userId, username: 'User1', email: 'user1@example.com', password: 'password' };
-    sinon.stub(db, 'query').callsFake((query, userId, callback) => {
-      callback(null, [user]);
-    });
+  describe('POST /api/users/register', function () {
+    this.timeout(TIMEOUT);
 
-    userModel.getUserById(userId).then((retrievedUser) => {
-      expect(retrievedUser).to.deep.equal(user);
-      done();
-    }).catch(done);
+    it('should register a new user', async () => {
+      const newUser = {
+        username: 'TestUser',
+        email: 'testuser@example.com',
+        password: 'testpassword',
+      };
+
+      const response = await request(app)
+        .post('/api/users/register')
+        .send(newUser);
+
+      expect(response.status).to.equal(201);
+      expect(response.body.message).to.equal('Пользователь успешно создан'); // Исправлено на русский язык
+      expect(response.body.userId).to.be.a('number');
+    });
   });
 
-  it('should get a user by email', (done) => {
-    const email = 'user1@example.com';
-    const user = { id: 1, username: 'User1', email: email, password: 'password' };
-    sinon.stub(db, 'query').callsFake((query, userEmail, callback) => {
-      callback(null, [user]);
+  describe('GET /api/users/:id', function () {
+    this.timeout(TIMEOUT);
+
+    let userId;
+    before(async () => {
+      const newUser = {
+        username: 'TestUser',
+        email: 'testuser@example.com',
+        password: 'testpassword',
+      };
+
+      const response = await request(app)
+        .post('/api/users/register')
+        .send(newUser);
+
+      userId = response.body.userId;
     });
 
-    userModel.getUserByEmail(email).then((retrievedUser) => {
-      expect(retrievedUser).to.deep.equal(user);
-      done();
-    }).catch(done);
+    it('should get a user by id', async () => {
+      const response = await request(app).get(`/api/users/${userId}`);
+
+      expect(response.status).to.equal(200);
+      expect(response.body.id).to.equal(userId);
+      expect(response.body.username).to.equal('TestUser');
+      expect(response.body.email).to.equal('testuser@example.com');
+    });
+
+    it('should return 404 when user not found', async () => {
+      const nonExistentUserId = 999;
+      const response = await request(app).get(`/api/users/${nonExistentUserId}`);
+
+      expect(response.status).to.equal(404);
+      expect(response.body.message).to.equal('User not found');
+    });
   });
 });

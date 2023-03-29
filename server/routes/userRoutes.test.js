@@ -1,66 +1,157 @@
 const request = require('supertest');
 const expect = require('chai').expect;
-const app = require('../app');
+const { app, startServer, stopServer } = require('../app');
+const userRoutes = require('../routes/userRoutes');
 
-describe('User Routes', function () {
-  let createdUserId;
+const TIMEOUT = 10000; // 10 seconds
 
-  // Создайте пользователя перед выполнением тестов
-  before(async () => {
-    const newUser = {
-      username: 'testuser',
-      email: 'testuser@example.com',
-      password: 'testpassword',
-    };
-    const res = await request(app).post('/api/users/register').send(newUser);
-    createdUserId = res.body.userId;
+const testUser = {
+  username: 'TestUser',
+  email: 'testuser@example.com',
+  password: 'testpassword',
+};
+
+describe('User API tests', function () {
+  this.timeout(TIMEOUT);
+
+  before(function (done) {
+    startServer();
+    done();
   });
 
-  // Получение пользователя по ID
-  it('should get a user by id', async () => {
-    const res = await request(app).get(`/api/users/${createdUserId}`);
-    expect(res.status).to.equal(200);
-    expect(res.body).to.be.an('object');
-    expect(res.body).to.have.property('id').equal(createdUserId);
-    expect(res.body).to.have.property('username').equal('testuser');
-    expect(res.body).to.have.property('email').equal('testuser@example.com');
+  after(function (done) {
+    stopServer();
+    done();
   });
 
-  it('should return a user by email', async () => {
-    const res = await request(app).get('/api/users/email/testuser@example.com');
+  // Test for user registration
+  describe('POST /api/users/register', function () {
+    this.timeout(TIMEOUT);
 
-    expect(res.status).to.equal(200);
-    expect(res.body).to.have.property('username');
-    expect(res.body).to.have.property('email');
-    expect(res.body).to.have.property('password');
+    it('should register a new user', async () => {
+      const response = await request(app)
+        .post('/api/users/register')
+        .send(testUser);
+
+      expect(response.status).to.equal(201);
+      expect(response.body.message).to.equal('Пользователь успешно создан');
+      expect(response.body.userId).to.be.a('number');
+    });
   });
 
-  it('should authenticate a user', async () => {
-    const userCredentials = {
-      email: 'testuser@example.com',
-      password: 'testpassword',
-    };
+  // Test for getting a user by ID
+  describe('GET /api/users/:id', function () {
+    this.timeout(TIMEOUT);
 
-    const res = await request(app)
-      .post('/api/users/login')
-      .send(userCredentials);
+    let userId;
+    before(async () => {
+      const response = await request(app)
+        .post('/api/users/register')
+        .send(testUser);
 
-    expect(res.status).to.equal(200);
-    expect(res.body).to.have.property('message', 'Аутентификация прошла успешно');
-    expect(res.body).to.have.property('userId');
+      userId = response.body.userId;
+    });
+
+    it('should get a user by id', async () => {
+      const response = await request(app).get(`/api/users/${userId}`);
+
+      expect(response.status).to.equal(200);
+      expect(response.body.id).to.equal(userId);
+      expect(response.body.username).to.equal('TestUser');
+      expect(response.body.email).to.equal('testuser@example.com');
+    });
+
+    it('should return 404 when user not found', async () => {
+      const nonExistentUserId = 999;
+      const response = await request(app).get(`/api/users/${nonExistentUserId}`);
+
+      expect(response.status).to.equal(404);
+      expect(response.body.message).to.equal('User not found');
+    });
   });
 
-  it('should return 401 for incorrect email or password', async () => {
-    const userCredentials = {
-      email: 'testuser@example.com',
-      password: 'wrongpassword',
-    };
+  // Test for getting a user by email
+  describe('GET /api/users/email/:email', function () {
+    this.timeout(TIMEOUT);
 
-    const res = await request(app)
-      .post('/api/users/login')
-      .send(userCredentials);
+    let userEmail;
+    before(async () => {
+      // Удаление существующего пользователя с тем же адресом электронной почты
+      await request(app)
+        .delete('/api/users/email')
+        .send({ email: testUser.email });
 
-    expect(res.status).to.equal(401);
-    expect(res.body).to.have.property('message', 'Неверный email или пароль');
+      // Создание нового пользователя
+      await request(app)
+        .post('/api/users/register')
+        .send(testUser);
+
+      userEmail = testUser.email;
+    });
+
+    it('should get a user by email', async () => {
+      const response = await request(app).get(`/api/users/email/${userEmail}`);
+
+      console.log(response.body); // Добавить вывод объекта пользователя
+
+      expect(response.status).to.equal(200);
+      expect(response.body.username).to.equal('TestUser');
+      expect(response.body.email).to.equal('testuser@example.com');
+    });
+
+    it('should return 404 when user not found by email', async () => {
+      const nonExistentEmail = 'nonexistent@example.com';
+      const response = await request(app).get(`/api/users/email/${nonExistentEmail}`);
+
+      expect(response.status).to.equal(404);
+      expect(response.body.message).to.equal('User not found');
+    });
+  });
+
+    // Test for user authentication
+  describe('POST /api/users/login', function () {
+    this.timeout(TIMEOUT);
+
+    let loginCredentials;
+    before(async () => {
+      const newUser = {
+        username: 'TestUser',
+        email: 'testuser@example.com',
+        password: 'testpassword',
+      };
+
+      await request(app)
+        .post('/api/users/register')
+        .send(newUser);
+
+      loginCredentials = {
+        email: newUser.email,
+        password: newUser.password,
+      };
+    });
+
+    it('should authenticate a user and return a token', async () => {
+      const response = await request(app)
+        .post('/api/users/login')
+        .send(loginCredentials);
+
+      expect(response.status).to.equal(200);
+      expect(response.body.token).to.be.a('string');
+    });
+
+    it('should return 401 when email or password is incorrect', async () => {
+      const invalidCredentials = {
+        email: 'testuser@example.com',
+        password: 'wrongpassword',
+      };
+
+      const response = await request(app)
+        .post('/api/users/login')
+        .send(invalidCredentials);
+
+      expect(response.status).to.equal(401);
+      expect(response.body.message).to.equal('Invalid email or password');
+    });
   });
 });
+
