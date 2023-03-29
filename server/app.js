@@ -1,24 +1,34 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const cors = require('cors');
-const dotenv = require('dotenv');
+const postRoutes = require('./routes/postRoutes');
 
 const app = express();
 
-// Загрузка переменных среды
-dotenv.config();
-
-// Использование CORS
+// Middleware
 app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
-// Парсинг JSON-запросов
-app.use(express.json());
+// Используйте postRoutes
+app.use('/api/posts', postRoutes);
 
-// Подключение роутера для модели Post
-const postRouter = require('./routes/postRoutes');
-app.use('/posts', postRouter);
+// для тестирования
+app.get('/test-error', (req, res, next) => {
+  throw new Error('Test error');
+});
 
-// Запуск сервера
+
+// Обработчик ошибок
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'An error occurred on the server' });
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log(`Сервер запущен на порту ${port}`);
+  console.log(`Server running on port ${port}`);
 });
+
+// для тестирования добавим
+module.exports = app;

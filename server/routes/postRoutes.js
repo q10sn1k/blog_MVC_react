@@ -1,6 +1,7 @@
 const express = require('express');
-const router = express.Router();
 const postController = require('../controllers/postController');
+
+const router = express.Router();
 
 // Получение списка всех постов
 router.get('/', postController.getAllPosts);
