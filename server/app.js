@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const userRoutes = require('./routes/userRoutes');
 const postRoutes = require('./routes/postRoutes');
 
 const app = express();
@@ -8,27 +9,23 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// Используйте postRoutes
+// Routes
+app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
 
-// для тестирования
-app.get('/test-error', (req, res, next) => {
-  throw new Error('Test error');
-});
-
-
-// Обработчик ошибок
+// Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'An error occurred on the server' });
+  res.status(500).json({ message: 'Ошибка сервера' });
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Сервер запущен на порту ${PORT}`);
 });
 
-// для тестирования добавим
 module.exports = app;
